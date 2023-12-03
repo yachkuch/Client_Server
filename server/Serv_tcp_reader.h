@@ -21,9 +21,35 @@
 
 #define local_host "127.0.0.1"
 
-void test()
+/// @brief Дефолтный хидер
+struct Defaul_Heder
 {
-    std::cout << "Some sheet" << std::endl;
+
+    uint32_t size;
+    uint32_t type_message;
+
+    Defaul_Heder() = default;
+    Defaul_Heder(Defaul_Heder &head)
+    {
+        this->size = head.size;
+        this->type_message = head.type_message;
+    }
+    Defaul_Heder(Defaul_Heder &&Head)
+    {
+        this->size = Head.size;
+        this->type_message = Head.type_message;
+    }
+    ~Defaul_Heder() = default;
+};
+
+void test(SOCKET soc)
+{
+    Defaul_Heder header;
+    char *buff = new char [sizeof(header)];
+    memset(buff,0,sizeof(Defaul_Heder));
+    int bytes_recv=recv(soc,buff,sizeof(Defaul_Heder),0);
+    memcpy(&header,buff,sizeof(Defaul_Heder));
+    std::cout << "Message recive " <<header.type_message<< std::endl;
 };
 
 /// @brief Тип работы в виде клиента или серввера
@@ -54,26 +80,7 @@ enum class socet_type : uint8_t
     datagramm_socket = SOCK_DGRAM,
 };
 
-/// @brief Дефолтный хидер
-struct Defaul_Heder
-{
 
-    uint32_t size;
-    uint32_t type_message;
-
-    Defaul_Heder() = default;
-    Defaul_Heder(Defaul_Heder &head)
-    {
-        this->size = head.size;
-        this->type_message = head.type_message;
-    }
-    Defaul_Heder(Defaul_Heder &&Head)
-    {
-        this->size = Head.size;
-        this->type_message = Head.type_message;
-    }
-    ~Defaul_Heder() = default;
-};
 /// @brief Структура буфера привести указатель на буфер к умному указателю
 struct Buffer
 {
@@ -149,7 +156,7 @@ public:
             // Ошибка!
             printf("Error WSAStartup %d\n", WSAGetLastError());
         }
-        std::cout << "Server initialize" << std::endl;
+        std::cout << "Library initialize" << std::endl;
     };
     Networker_base(const uint16_t port /*,uint8_t socket_type*/, uint8_t protocol_type) : port(port)
     {
@@ -160,7 +167,7 @@ public:
             // Ошибка!
             printf("Error WSAStartup %d\n", WSAGetLastError());
         }
-        std::cout << "Server initialize" << std::endl;
+        std::cout << "Library initialize" << std::endl;
     };
     // @todo очистку и закрытие всех сокетов
     ~Networker_base()
@@ -254,20 +261,57 @@ public:
     /// @param buffer указатель на буффер
     /// @param soket сокет который должен осуществить посылку
     /// @param size  размер посылки
-    void send_(std::unique_ptr<char> buffer, SOCKET *soket = nullptr, int size = 0)
+    void send_(std::unique_ptr<char> buffer, int size = 0,SOCKET *soket = nullptr)
     {
         if ((size != 0))
         {
             SOCKET *soc = nullptr;
             if ((soket == nullptr))
                 soc = last_create_socket;
-            if (buffer.get() == nullptr)
-                std::cout << "Попытка послать пустой буфер" << std::endl;
-            send(*soc, buffer.get(), size);
+            if (buffer.get() == nullptr){
+                std::cout << "Попытка послать пустой буфер, посылка отменена" << std::endl;
+                return;}
+            send(*soc, buffer.get(), size,0);
         }
         else
         {
-            std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
+            SOCKET *soc = nullptr;
+            if(soket = nullptr){
+                soc = last_create_socket;
+            }
+            if (buffer.get() == nullptr){
+                std::cout<<"Посылка послать пустой буффер, посылка отменена"<< std::endl;
+                return;}
+            send(*soc,buffer.get(),size,0);
+            
+            //std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
+        }
+    }
+
+    void send_( const char *buffer, int size = 0,SOCKET *soket = nullptr)
+    {
+        if ((size != 0))
+        {
+            SOCKET *soc = nullptr;
+            if ((soket == nullptr))
+                soc = last_create_socket;
+            if (buffer == nullptr){
+                std::cout << "Your buffer is empty" << std::endl;
+                return;}
+            send(*soc, buffer, size,0);
+        }
+        else
+        {
+            SOCKET *soc = nullptr;
+            if(soket = nullptr){
+                soc = last_create_socket;
+            }
+            if (buffer == nullptr){
+                std::cout<<"Your buffer is empty"<< std::endl;
+                return;}
+            send(*soc,buffer,size,0);
+            
+            //std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
         }
     }
 };
@@ -290,7 +334,7 @@ public:
     {
         if (last_create_socket == nullptr)
         {
-            std::cout << "Не создано сокета на который происходит бинд" << std::endl;
+            std::cout << "Soket dont create" << std::endl;
         }
         sockaddr_in adress;
         adress.sin_family = AF_INET;
@@ -298,12 +342,12 @@ public:
         adress.sin_addr.S_un.S_addr = 0;
         if (bind(*last_create_socket, (sockaddr *)&adress, sizeof(adress)))
         {
-            std::cout << "Сокет не биндится" << std::endl;
+            std::cout << "Soket didnt bind" << std::endl;
             return false;
         }
         if (listen(*last_create_socket, 0x100))
         {
-            std::cout << "Oшибка прослушивания сокета" << std::endl;
+            std::cout << "Erroe listen socket!" << std::endl;
             return false;
         }
         std::cout << "Listen connection" << std::endl;
@@ -315,8 +359,9 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread(test);
-            std::cout << "Create accept sheeeet" << std::endl;
+            std::thread a(test, client_socket);
+            a.detach();
+            std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
         }
 
@@ -341,7 +386,9 @@ private:
     /* data */
 public:
     client(){};
-    client(const uint16_t port, uint8_t sockete_type, uint8_t protocol_type) : Networker_base(port, protocol_type){};
+    client(const uint16_t port, uint8_t sockete_type, uint8_t protocol_type) : Networker_base(port, protocol_type){
+        std::cout<<"Client initialize sucsessful"<<std::endl;
+    };
     ~client(){};
 
     bool connect_()
