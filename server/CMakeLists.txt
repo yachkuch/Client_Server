@@ -9,7 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 get_filename_component(DIR_ONE_ABOVE ../include/Protocol_communication.cpp ABSOLUTE)
 get_filename_component(DIR_ONE_ABOVE ../include/Protocol_pak ABSOLUTE)
-add_executable(Server main.cpp Serv_tcp_reader.h )
+
+add_executable(Server main.cpp  )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
