@@ -42,6 +42,37 @@ struct Defaul_Heder
     ~Defaul_Heder() = default;
 };
 
+template <typename Header>
+void Reader(SOCKET soc)
+{
+    Header *header = nullptr;
+    int Heder_size = sizeof(Header);
+    char *buff = new char[Heder_size];
+    memset(buff, 0, Heder_size);
+    while (true)
+    {
+        int bytes_recv = recv(soc, buff, Heder_size, MSG_WAITALL);
+        int bytes_recv2 = 0;
+        header = (Header *)buff;
+        std::cout << "Message recive " << header->type_message << std::endl;
+        if (header->size > 65000){
+            std::cout<<"Большой буфер подобная ситуация не предусматривалась для корректной работы (скорее всего)"<<std::endl;
+        }
+
+        char *buff2 = new char[header->size - Heder_size];
+        char *dublicat = buff2;
+        while (header->size - Heder_size - bytes_recv2 > 0)
+        {
+            bytes_recv2 = recv(soc, buff2 + bytes_recv2, header->size - Heder_size - bytes_recv2 , MSG_WAITALL);
+        }
+        
+        for(int i =0 ; i<(header->size - Heder_size);i++){
+            std::cout<<buff2[i];
+        }
+        std::cout<<std::endl;
+    }
+};
+
 /// @brief Тип работы в виде клиента или серввера
 enum class Server_Client_type : uint8_t
 {
@@ -73,8 +104,11 @@ enum class socet_type : uint8_t
 /// @brief Структура буфера привести указатель на буфер к умному указателю
 struct Buffer
 {
+private:
     char *buffer = nullptr;
     int buffer_size = 0;
+
+public:
     Buffer() = default;
     ~Buffer()
     {
@@ -126,7 +160,7 @@ protected:
     /// @brief Хранит в себе последний созданный сокет, чтобы серверу было удобно делать метод bind
     SOCKET *last_create_socket = nullptr;
     /// @todo разобраться с ридером
-    std::function<(char *)> default_reafer = nullptr;
+    //    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
 
     /// @brief Проверяет наличие размера у heder
@@ -134,25 +168,6 @@ protected:
     {
         Has_s<Header>;
     };
-
-    void set_default_reafer(SOCKET soc)
-    {
-        /// TODO Дописать вычитываетль байт
-        Defaul_Heder header;
-        char *buff = new char[sizeof(header)];
-        memset(buff, 0, sizeof(Defaul_Heder));
-        int bytes_recv = recv(soc, buff, sizeof(Defaul_Heder), MSG_PEEK);
-        // while (bytes_recv<sizeof)
-        // {
-        //     /* code */
-        // }
-
-        memcpy(&header, buff, sizeof(Defaul_Heder));
-        std::cout << "Message recive " << header.type_message << std::endl;
-        // if(header.size>sizeof){
-
-        // }
-    }
 
 public:
     Networker_base()
@@ -239,7 +254,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(test<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket);
             a.detach();
             std::cout << "Create accept " << inet_ntoa(client_addr.sin_addr) << std::endl;
         }
@@ -381,7 +396,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(test<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket);
             a.detach();
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
@@ -415,7 +430,7 @@ public:
     };
     ~client(){};
 
-    bool connect_()
+    [[deprecated]] bool connect_()
     {
         sockaddr_in dest_addr;
         dest_addr.sin_family = AF_INET;
