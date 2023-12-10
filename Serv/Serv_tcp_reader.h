@@ -42,16 +42,6 @@ struct Defaul_Heder
     ~Defaul_Heder() = default;
 };
 
-void test(SOCKET soc)
-{
-    Defaul_Heder header;
-    char *buff = new char [sizeof(header)];
-    memset(buff,0,sizeof(Defaul_Heder));
-    int bytes_recv=recv(soc,buff,sizeof(Defaul_Heder),0);
-    memcpy(&header,buff,sizeof(Defaul_Heder));
-    std::cout << "Message recive " <<header.type_message<< std::endl;
-};
-
 /// @brief Тип работы в виде клиента или серввера
 enum class Server_Client_type : uint8_t
 {
@@ -79,7 +69,6 @@ enum class socet_type : uint8_t
     potock_soclet = SOCK_STREAM,
     datagramm_socket = SOCK_DGRAM,
 };
-
 
 /// @brief Структура буфера привести указатель на буфер к умному указателю
 struct Buffer
@@ -137,7 +126,7 @@ protected:
     /// @brief Хранит в себе последний созданный сокет, чтобы серверу было удобно делать метод bind
     SOCKET *last_create_socket = nullptr;
     /// @todo разобраться с ридером
-    // std::function<(char *)> default_reafer = nullptr;
+    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
 
     /// @brief Проверяет наличие размера у heder
@@ -145,6 +134,25 @@ protected:
     {
         Has_s<Header>;
     };
+
+    void set_default_reafer(SOCKET soc)
+    {
+        /// TODO Дописать вычитываетль байт
+        Defaul_Heder header;
+        char *buff = new char[sizeof(header)];
+        memset(buff, 0, sizeof(Defaul_Heder));
+        int bytes_recv = recv(soc, buff, sizeof(Defaul_Heder), MSG_PEEK);
+        // while (bytes_recv<sizeof)
+        // {
+        //     /* code */
+        // }
+
+        memcpy(&header, buff, sizeof(Defaul_Heder));
+        std::cout << "Message recive " << header.type_message << std::endl;
+        // if(header.size>sizeof){
+
+        // }
+    }
 
 public:
     Networker_base()
@@ -228,12 +236,12 @@ public:
         // цикл извлечения запросов на подключение из очереди
         while ((client_socket = accept(mysocket, (sockaddr *)&client_addr, &client_addr_size)))
         {
-             HOSTENT *host;
-             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
-             DWORD thID;
-             std::thread a(test, client_socket);
-             a.detach();
-             std::cout << "Create accept "<< inet_ntoa(client_addr.sin_addr) << std::endl;
+            HOSTENT *host;
+            host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
+            DWORD thID;
+            std::thread a(test<Header>, client_socket);
+            a.detach();
+            std::cout << "Create accept " << inet_ntoa(client_addr.sin_addr) << std::endl;
         }
     }
 
@@ -262,58 +270,68 @@ public:
     /// @param buffer указатель на буффер
     /// @param soket сокет который должен осуществить посылку
     /// @param size  размер посылки
-    void send_(std::unique_ptr<char> buffer, int size = 0,SOCKET *soket = nullptr)
+    void send_(std::unique_ptr<char> buffer, int size = 0, SOCKET *soket = nullptr)
     {
         if ((size != 0))
         {
             SOCKET *soc = nullptr;
             if ((soket == nullptr))
                 soc = last_create_socket;
-            if (buffer.get() == nullptr){
+            if (buffer.get() == nullptr)
+            {
                 std::cout << "Попытка послать пустой буфер, посылка отменена" << std::endl;
-                return;}
-            send(*soc, buffer.get(), size,0);
+                return;
+            }
+            send(*soc, buffer.get(), size, 0);
         }
         else
         {
             SOCKET *soc = nullptr;
-            if(soket = nullptr){
+            if (soket = nullptr)
+            {
                 soc = last_create_socket;
             }
-            if (buffer.get() == nullptr){
-                std::cout<<"Посылка послать пустой буффер, посылка отменена"<< std::endl;
-                return;}
-            send(*soc,buffer.get(),size,0);
-            
-            //std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
+            if (buffer.get() == nullptr)
+            {
+                std::cout << "Посылка послать пустой буффер, посылка отменена" << std::endl;
+                return;
+            }
+            send(*soc, buffer.get(), size, 0);
+
+            // std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
         }
     }
 
-    void send_( const char *buffer, int size = 0,SOCKET *soket = nullptr)
+    void send_(const char *buffer, int size = 0, SOCKET *soket = nullptr)
     {
         if ((size != 0))
         {
             SOCKET *soc = nullptr;
             if ((soket == nullptr))
                 soc = last_create_socket;
-            if (buffer == nullptr){
+            if (buffer == nullptr)
+            {
                 std::cout << "Your buffer is empty" << std::endl;
-                return;}
-            auto a = send(*soc, buffer, size,0);
-            std::cout<<std::endl;
+                return;
+            }
+            auto a = send(*soc, buffer, size, 0);
+            std::cout << std::endl;
         }
         else
         {
             SOCKET *soc = nullptr;
-            if(soket = nullptr){
+            if (soket = nullptr)
+            {
                 soc = last_create_socket;
             }
-            if (buffer == nullptr){
-                std::cout<<"Your buffer is empty"<< std::endl;
-                return;}
-            send(*soc,buffer,size,0);
-            
-            //std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
+            if (buffer == nullptr)
+            {
+                std::cout << "Your buffer is empty" << std::endl;
+                return;
+            }
+            send(*soc, buffer, size, 0);
+
+            // std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
         }
     }
 };
@@ -356,19 +374,19 @@ public:
         SOCKET client_socket;
         sockaddr_in client_addr;
         int client_addr_size = sizeof(client_addr);
-        //std::thread a1 (&Networker_base::listen_socket,this,client_socket);
-        //a1.detach();
+        // std::thread a1 (&Networker_base::listen_socket,this,client_socket);
+        // a1.detach();
         while ((client_socket = accept(*last_create_socket, (sockaddr *)&client_addr, &client_addr_size)))
         {
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(test, client_socket);
+            std::thread a(test<Header>, client_socket);
             a.detach();
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
         }
-        std::cout<<"Go out from functions"<<std::endl;
+        std::cout << "Go out from functions" << std::endl;
 
         return true;
     }
@@ -391,8 +409,9 @@ private:
     /* data */
 public:
     client(){};
-    client(const uint16_t port, uint8_t sockete_type, uint8_t protocol_type) : Networker_base(port, protocol_type){
-        std::cout<<"Client initialize sucsessful"<<std::endl;
+    client(const uint16_t port, uint8_t sockete_type, uint8_t protocol_type) : Networker_base(port, protocol_type)
+    {
+        std::cout << "Client initialize sucsessful" << std::endl;
     };
     ~client(){};
 

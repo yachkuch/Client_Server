@@ -25,7 +25,7 @@ void workerFunc()
 	std::cout << std::endl;
 	auto val = server.fast_server_start();
 }
-
+//! @todo TODO: dsjfg
 void workerFunc2()
 {
 	client<> client(3466, 1, 1);
@@ -54,8 +54,10 @@ int main(int argc, char *argv[])
 
 	Serv_tcp_reader<> server(3466, 1, 1);
 	std::cout << "Start bind socket" << std::endl;
+    int ass = 0;
 	std::cout << std::endl;
 	auto val = server.fast_server_start();
+    std::cout<<val;
 	system("Pause");
 	return 0 ;
 
