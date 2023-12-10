@@ -4,6 +4,7 @@ project(Client_Server VERSION 0.1.0 LANGUAGES C CXX)
 include(CTest)
 enable_testing()
 include_directories(include)
+include_directories(Serv)
 
 add_executable(Client_Server main.cpp)
 

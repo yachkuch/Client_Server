@@ -182,7 +182,7 @@ public:
 
     void close_all_sock()
     {
-        printf("Close sockets  %d\n", WSAGetLastError());
+        printf("Close sockets from function %d\n", WSAGetLastError());
         for (auto a : all_sockets)
         {
             closesocket(*a);
@@ -217,13 +217,8 @@ public:
         last_create_socket = new_socket;
     }
 
-    void listen_socket()
+    void listen_socket(SOCKET mysocket)
     {
-        if (!listen(*last_create_socket, 0x100))
-        {
-            std::cout << "Cant listen socket" << std::endl;
-            return;
-        }
         std::cout << "listen connect" << std::endl;
         SOCKET client_socket;    // сокет для клиента
         sockaddr_in client_addr; // адрес клиента (заполняется системой)
@@ -233,6 +228,12 @@ public:
         // цикл извлечения запросов на подключение из очереди
         while ((client_socket = accept(mysocket, (sockaddr *)&client_addr, &client_addr_size)))
         {
+             HOSTENT *host;
+             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
+             DWORD thID;
+             std::thread a(test, client_socket);
+             a.detach();
+             std::cout << "Create accept "<< inet_ntoa(client_addr.sin_addr) << std::endl;
         }
     }
 
@@ -298,7 +299,8 @@ public:
             if (buffer == nullptr){
                 std::cout << "Your buffer is empty" << std::endl;
                 return;}
-            send(*soc, buffer, size,0);
+            auto a = send(*soc, buffer, size,0);
+            std::cout<<std::endl;
         }
         else
         {
@@ -342,7 +344,7 @@ public:
         adress.sin_addr.S_un.S_addr = 0;
         if (bind(*last_create_socket, (sockaddr *)&adress, sizeof(adress)))
         {
-            std::cout << "Soket didnt bind" << std::endl;
+            std::cout << "Soket didnt bind (Server)" << std::endl;
             return false;
         }
         if (listen(*last_create_socket, 0x100))
@@ -354,6 +356,8 @@ public:
         SOCKET client_socket;
         sockaddr_in client_addr;
         int client_addr_size = sizeof(client_addr);
+        //std::thread a1 (&Networker_base::listen_socket,this,client_socket);
+        //a1.detach();
         while ((client_socket = accept(*last_create_socket, (sockaddr *)&client_addr, &client_addr_size)))
         {
             HOSTENT *host;
@@ -364,6 +368,7 @@ public:
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
         }
+        std::cout<<"Go out from functions"<<std::endl;
 
         return true;
     }
