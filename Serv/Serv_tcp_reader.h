@@ -1,5 +1,5 @@
 /// @author Якуш Н.А.
-/// @version 1.0.0.
+/// @version 1.1.0.
 /// @date 17.11.2023
 /// @details Классы с клиент серверными универсальными классами клиента и сервера
 #pragma once
@@ -41,7 +41,11 @@ struct Defaul_Heder
     }
     ~Defaul_Heder() = default;
 };
-
+/// TODO Обязательно в этой функции необходимо отдать слежку за памятью в умный указатель и придумать как из этой функции получать данные
+/// TODO в том случае если какой-нибудб конч нокосячит с размером хидера или с размером посылки и байт будет не достаточно в посылке это повесит поток вычитывателя
+/// @brief Функция вычитывания байт из сокета
+/// @tparam Header размер хидера вычитывателя 
+/// @param soc сокет с которого происходит чтение 
 template <typename Header>
 void Reader(SOCKET soc)
 {
@@ -55,10 +59,6 @@ void Reader(SOCKET soc)
         int bytes_recv2 = 0;
         header = (Header *)buff;
         std::cout << "Message recive " << header->type_message << std::endl;
-        if (header->size > 65000){
-            std::cout<<"Большой буфер подобная ситуация не предусматривалась для корректной работы (скорее всего)"<<std::endl;
-        }
-
         char *buff2 = new char[header->size - Heder_size];
         char *dublicat = buff2;
         while (header->size - Heder_size - bytes_recv2 > 0)
@@ -70,6 +70,7 @@ void Reader(SOCKET soc)
             std::cout<<buff2[i];
         }
         std::cout<<std::endl;
+        delete [] buff2;
     }
 };
 
@@ -100,16 +101,20 @@ enum class socet_type : uint8_t
     potock_soclet = SOCK_STREAM,
     datagramm_socket = SOCK_DGRAM,
 };
-
+// TODO Написать нормально буффер для работы с данными обязательно на умном указателе
 /// @brief Структура буфера привести указатель на буфер к умному указателю
 struct Buffer
 {
 private:
+    std::unique_ptr<char *[]> buff;
     char *buffer = nullptr;
     int buffer_size = 0;
 
 public:
-    Buffer() = default;
+    Buffer(char *a){
+        if(a == nullptr) throw;
+        
+    }
     ~Buffer()
     {
         if (buffer != nullptr)
