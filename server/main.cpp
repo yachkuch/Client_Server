@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 	std::cout << std::endl;
 	auto val = server.fast_server_start();
     std::cout<<val;
-	Buffer a;
 	system("Pause");
 	return 0 ;
 

@@ -21,6 +21,30 @@
 
 #define local_host "127.0.0.1"
 
+
+// TODO Написать нормально буффер для работы с данными обязательно на умном указателе
+/// @brief Структура буфера привести указатель на буфер к умному указателю
+struct Buffer
+{
+private:
+    std::unique_ptr<char *[]> buff;
+    char *buffer = nullptr;
+    int buffer_size = 0;
+
+public:
+    Buffer(char *a){
+        if(a == nullptr) throw;
+        
+    }
+    ~Buffer()
+    {
+        if (buffer != nullptr)
+        {
+            delete[] buffer;
+        }
+    }
+};
+
 /// @brief Дефолтный хидер
 struct Defaul_Heder
 {
@@ -47,8 +71,9 @@ struct Defaul_Heder
 /// @tparam Header размер хидера вычитывателя 
 /// @param soc сокет с которого происходит чтение 
 template <typename Header>
-void Reader(SOCKET soc)
+void Reader(SOCKET soc ,  std::function<void(Buffer *buf)> default_mes_handler)
 {
+    if(default_mes_handler == nullptr) return;
     Header *header = nullptr;
     int Heder_size = sizeof(Header);
     char *buff = new char[Heder_size];
@@ -101,28 +126,6 @@ enum class socet_type : uint8_t
     potock_soclet = SOCK_STREAM,
     datagramm_socket = SOCK_DGRAM,
 };
-// TODO Написать нормально буффер для работы с данными обязательно на умном указателе
-/// @brief Структура буфера привести указатель на буфер к умному указателю
-struct Buffer
-{
-private:
-    std::unique_ptr<char *[]> buff;
-    char *buffer = nullptr;
-    int buffer_size = 0;
-
-public:
-    Buffer(char *a){
-        if(a == nullptr) throw;
-        
-    }
-    ~Buffer()
-    {
-        if (buffer != nullptr)
-        {
-            delete[] buffer;
-        }
-    }
-};
 /// @brief Структуры для проверки наличия параметра size у header
 /// @tparam T
 /// @tparam
@@ -167,6 +170,7 @@ protected:
     /// @todo разобраться с ридером
     //    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
+    std::function<void(Buffer *buf)> default_mes_handler = nullptr;
 
     /// @brief Проверяет наличие размера у heder
     void has_perements()
@@ -259,7 +263,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(Reader<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket , default_mes_handler);
             a.detach();
             std::cout << "Create accept " << inet_ntoa(client_addr.sin_addr) << std::endl;
         }
@@ -401,7 +405,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(Reader<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket , default_mes_handler);
             a.detach();
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
