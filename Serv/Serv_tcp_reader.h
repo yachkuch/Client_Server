@@ -18,32 +18,10 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <thread>
+#include <Buffer.h>
 
 #define local_host "127.0.0.1"
 
-
-// TODO Написать нормально буффер для работы с данными обязательно на умном указателе
-/// @brief Структура буфера привести указатель на буфер к умному указателю
-struct Buffer
-{
-private:
-    std::unique_ptr<char *[]> buff;
-    char *buffer = nullptr;
-    int buffer_size = 0;
-
-public:
-    Buffer(char *a){
-        if(a == nullptr) throw;
-        
-    }
-    ~Buffer()
-    {
-        if (buffer != nullptr)
-        {
-            delete[] buffer;
-        }
-    }
-};
 
 /// @brief Дефолтный хидер
 struct Defaul_Heder
@@ -84,19 +62,19 @@ void Reader(SOCKET soc ,  std::function<void(Buffer *buf)> default_mes_handler)
         int bytes_recv2 = 0;
         header = (Header *)buff;
         std::cout << "Message recive " << header->type_message << std::endl;
-        char *buff2 = new char[header->size - Heder_size];
-        char *dublicat = buff2;
+        //char *buff2 = new char[header->size - Heder_size];
+        std::unique_ptr<char[]> buff2(new char[header->size - Heder_size]);
         while (header->size - Heder_size - bytes_recv2 > 0)
         {
-            bytes_recv2 = recv(soc, buff2 + bytes_recv2, header->size - Heder_size - bytes_recv2 , MSG_WAITALL);
+            bytes_recv2 = recv(soc, buff2.get() + bytes_recv2, header->size - Heder_size - bytes_recv2 , MSG_WAITALL);
         }
         
         for(int i =0 ; i<(header->size - Heder_size);i++){
-            std::cout<<buff2[i];
+            std::cout<<buff2.get()[i];
         }
         std::cout<<std::endl;
-        delete [] buff2;
     }
+    delete [] buff;
 };
 
 /// @brief Тип работы в виде клиента или серввера
@@ -171,6 +149,7 @@ protected:
     //    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
     std::function<void(Buffer *buf)> default_mes_handler = nullptr;
+    std::vector<Buffer> messages;
 
     /// @brief Проверяет наличие размера у heder
     void has_perements()
@@ -201,7 +180,6 @@ public:
         }
         std::cout << "Library initialize" << std::endl;
     };
-    // @todo очистку и закрытие всех сокетов
     ~Networker_base()
     {
         printf("Close sockets %d\n", WSAGetLastError());
@@ -211,6 +189,13 @@ public:
         }
         WSACleanup();
     };
+
+// TODO Додулать удаление из вектора
+    Buffer get_message(){
+        if(messages.empty()) return Buffer();
+        return Buffer();
+    }
+
 
     void close_all_sock()
     {
