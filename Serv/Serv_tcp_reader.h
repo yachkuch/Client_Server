@@ -1,5 +1,5 @@
 /// @author Якуш Н.А.
-/// @version 1.0.0.
+/// @version 1.1.0.
 /// @date 17.11.2023
 /// @details Классы с клиент серверными универсальными классами клиента и сервера
 #pragma once
@@ -18,8 +18,10 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <thread>
+#include <Buffer.h>
 
 #define local_host "127.0.0.1"
+
 
 /// @brief Дефолтный хидер
 struct Defaul_Heder
@@ -40,6 +42,38 @@ struct Defaul_Heder
         this->type_message = Head.type_message;
     }
     ~Defaul_Heder() = default;
+};
+
+/// TODO в том случае если какой-нибудб конч нокосячит с размером хидера или с размером посылки и байт будет не достаточно в посылке это повесит поток вычитывателя
+/// @brief Функция вычитывания байт из сокета
+/// @tparam Header размер хидера вычитывателя 
+/// @param soc сокет с которого происходит чтение 
+template <typename Header>
+void Reader(SOCKET soc ,  std::function<void(Buffer buf)> default_mes_handler)
+{
+    //if(default_mes_handler == nullptr) return;
+    Header *header = nullptr;
+    int Heder_size = sizeof(Header);
+    char *buff = new char[Heder_size];
+    memset(buff, 0, Heder_size);
+    while (true)
+    {
+        int bytes_recv = recv(soc, buff, Heder_size, MSG_WAITALL);
+        int bytes_recv2 = 0;
+        header = (Header *)buff;
+        std::cout << "Message recive " << header->type_message << std::endl;
+        std::unique_ptr<char[]> buff2(new char[header->size - Heder_size]);
+        while (header->size - Heder_size - bytes_recv2 > 0)
+        {
+            bytes_recv2 = recv(soc, buff2.get() + bytes_recv2, header->size - Heder_size - bytes_recv2 , MSG_WAITALL);
+        }
+        if(default_mes_handler != nullptr){
+            default_mes_handler(std::move(Buffer(std::move(buff2),bytes_recv2)));
+        } else {
+            std::cout<<"Прислано сообщение но остутствует обработчик данного сообщения"<<std::endl;
+        }
+    }
+    delete [] buff;
 };
 
 /// @brief Тип работы в виде клиента или серввера
@@ -68,21 +102,6 @@ enum class socet_type : uint8_t
 {
     potock_soclet = SOCK_STREAM,
     datagramm_socket = SOCK_DGRAM,
-};
-
-/// @brief Структура буфера привести указатель на буфер к умному указателю
-struct Buffer
-{
-    char *buffer = nullptr;
-    int buffer_size = 0;
-    Buffer() = default;
-    ~Buffer()
-    {
-        if (buffer != nullptr)
-        {
-            delete[] buffer;
-        }
-    }
 };
 /// @brief Структуры для проверки наличия параметра size у header
 /// @tparam T
@@ -126,33 +145,18 @@ protected:
     /// @brief Хранит в себе последний созданный сокет, чтобы серверу было удобно делать метод bind
     SOCKET *last_create_socket = nullptr;
     /// @todo разобраться с ридером
-    std::function<(char *)> default_reafer = nullptr;
+    //    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
+    std::function<void(Buffer buf)> default_mes_handler = nullptr;
+    std::vector<Buffer> messages;
+
+    friend void Reader<Header>(SOCKET soc ,  std::function<void(Buffer buf)> default_mes_handler);
 
     /// @brief Проверяет наличие размера у heder
     void has_perements()
     {
         Has_s<Header>;
     };
-
-    void set_default_reafer(SOCKET soc)
-    {
-        /// TODO Дописать вычитываетль байт
-        Defaul_Heder header;
-        char *buff = new char[sizeof(header)];
-        memset(buff, 0, sizeof(Defaul_Heder));
-        int bytes_recv = recv(soc, buff, sizeof(Defaul_Heder), MSG_PEEK);
-        // while (bytes_recv<sizeof)
-        // {
-        //     /* code */
-        // }
-
-        memcpy(&header, buff, sizeof(Defaul_Heder));
-        std::cout << "Message recive " << header.type_message << std::endl;
-        // if(header.size>sizeof){
-
-        // }
-    }
 
 public:
     Networker_base()
@@ -177,7 +181,6 @@ public:
         }
         std::cout << "Library initialize" << std::endl;
     };
-    // @todo очистку и закрытие всех сокетов
     ~Networker_base()
     {
         printf("Close sockets %d\n", WSAGetLastError());
@@ -187,6 +190,13 @@ public:
         }
         WSACleanup();
     };
+
+// TODO Додулать удаление из вектора
+    Buffer get_message(){
+        if(messages.empty()) return Buffer();
+        return Buffer();
+    }
+
 
     void close_all_sock()
     {
@@ -239,7 +249,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(test<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket , default_mes_handler);
             a.detach();
             std::cout << "Create accept " << inet_ntoa(client_addr.sin_addr) << std::endl;
         }
@@ -381,7 +391,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(test<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket , default_mes_handler);
             a.detach();
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
@@ -415,7 +425,7 @@ public:
     };
     ~client(){};
 
-    bool connect_()
+    [[deprecated]] bool connect_()
     {
         sockaddr_in dest_addr;
         dest_addr.sin_family = AF_INET;

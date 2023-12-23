@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <thread>
 #include <WinSock2.h>
@@ -44,14 +45,11 @@ void workerFunc2()
 
 int main(int argc, char *argv[])
 {
+	Buffer a;
+	std::unique_ptr<char []> value(new char [10]);
+	memset(value.get(),7,10);
+	a.set_buffer(std::move(value));
 	setlocale(LC_ALL, "Russian");
-	std::cout << "Hello" << std::endl;
-	// std::thread thread(workerFunc);
-	// thread.detach();
-	// std::cout<< "Make client"<<std::endl;
-	// std::thread t2(workerFunc2);
-	// t2.detach();
-
 	Serv_tcp_reader<> server(3466, 1, 1);
 	std::cout << "Start bind socket" << std::endl;
     int ass = 0;
@@ -60,5 +58,4 @@ int main(int argc, char *argv[])
     std::cout<<val;
 	system("Pause");
 	return 0 ;
-
 }
