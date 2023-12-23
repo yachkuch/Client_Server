@@ -19,7 +19,7 @@ class My_pril{
 		std::cout<<"Hello"<<std::endl;
 	};
 	Serv_tcp_reader<> server(3466, 1, 1);
-	server.set_default_mes_handler(default_mes_handler);
+	//server.set_default_mes_handler(default_mes_handler);
 	std::cout << "Start bind socket" << std::endl;
     int ass = 0;
 	std::cout << std::endl;

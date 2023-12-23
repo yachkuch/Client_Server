@@ -1,6 +1,6 @@
 #pragma once
 
-/// @brief Структура буфера 
+/// @brief Структура буфера управляющая набором байт для сервера 
 struct Buffer
 {
 private:
@@ -33,9 +33,14 @@ public:
         return buffer_size;
     }
 
-    const char *get_buffer()
+    std::unique_ptr<char []> get_buffer()
     {
-        return buffer.get();
+        return std::move(buffer);
+    }
+
+    std::unique_ptr<char []> get_header()
+    {
+        return std::move(header);
     }
 
     void set_buffer( std::unique_ptr<char []> value){

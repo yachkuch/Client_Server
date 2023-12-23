@@ -11,6 +11,7 @@
 #include <functional>
 #include <memory>
 #include <iostream>
+#include <cassert>
 
 #pragma comment(lib, "ws2_32.lib")
 #include <stdio.h>
@@ -21,6 +22,9 @@
 #include <Buffer.h>
 
 #define local_host "127.0.0.1"
+
+
+/// TODO: Обязательно добавить обработку адреса не через define
 
 /// @brief Дефолтный хидер
 struct Defaul_Heder
@@ -55,10 +59,11 @@ void Reader(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler)
     int Heder_size = sizeof(Header);
     char *buff = new char[Heder_size];
     memset(buff, 0, Heder_size);
+    int bytes_recv2 = 0;
+    int bytes_recv = 0;
     while (true)
     {
-        int bytes_recv = recv(soc, buff, Heder_size, MSG_WAITALL);
-        int bytes_recv2 = 0;
+        bytes_recv = recv(soc, buff, Heder_size, MSG_WAITALL);
         header = (Header *)buff;
         std::cout << "Message recive " << header->type_message << std::endl;
         std::unique_ptr<char[]> buff_Header(new char(Heder_size));
@@ -75,7 +80,11 @@ void Reader(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler)
         }
         else
         {
-            std::cout << "Прислано сообщение но остутствует обработчик данного сообщения" << std::endl;
+            std::cout <<"Прислано сообщение но остутствует обработчик данного сообщения. Размер сообщения без заголовка = "
+            <<bytes_recv2<<" Завершаю работу приложения"<< std::endl;
+            // TODO: Доделать чтобы производилось генерирование сообщения в случае отстутствия обработчика
+            assert(("A must be equal to B", default_mes_handler != nullptr));
+            
         }
     }
     delete[] buff;
