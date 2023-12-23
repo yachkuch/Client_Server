@@ -49,7 +49,7 @@ struct Defaul_Heder
 /// @tparam Header размер хидера вычитывателя 
 /// @param soc сокет с которого происходит чтение 
 template <typename Header>
-void Reader(SOCKET soc ,  std::function<void(Buffer buf)> default_mes_handler)
+void Reader(SOCKET soc ,  std::function<void(Buffer *buf)> default_mes_handler)
 {
     //if(default_mes_handler == nullptr) return;
     Header *header = nullptr;
@@ -62,13 +62,16 @@ void Reader(SOCKET soc ,  std::function<void(Buffer buf)> default_mes_handler)
         int bytes_recv2 = 0;
         header = (Header *)buff;
         std::cout << "Message recive " << header->type_message << std::endl;
+        std::unique_ptr<char[]> buff_Header(new char(Heder_size));
+        memcpy(buff_Header.get(),buff,Heder_size);
         std::unique_ptr<char[]> buff2(new char[header->size - Heder_size]);
         while (header->size - Heder_size - bytes_recv2 > 0)
         {
             bytes_recv2 = recv(soc, buff2.get() + bytes_recv2, header->size - Heder_size - bytes_recv2 , MSG_WAITALL);
         }
         if(default_mes_handler != nullptr){
-            default_mes_handler(std::move(Buffer(std::move(buff2),bytes_recv2)));
+            auto *mes = new Buffer(std::move(buff2),bytes_recv2,std::move(buff_Header));
+            default_mes_handler(std::move(mes));
         } else {
             std::cout<<"Прислано сообщение но остутствует обработчик данного сообщения"<<std::endl;
         }
@@ -147,10 +150,10 @@ protected:
     /// @todo разобраться с ридером
     //    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
-    std::function<void(Buffer buf)> default_mes_handler = nullptr;
+    std::function<void(Buffer *buf)> default_mes_handler = nullptr;
     std::vector<Buffer> messages;
 
-    friend void Reader<Header>(SOCKET soc ,  std::function<void(Buffer buf)> default_mes_handler);
+    friend void Reader<Header>(SOCKET soc ,  std::function<void(Buffer *buf)> default_mes_handler);
 
     /// @brief Проверяет наличие размера у heder
     void has_perements()
@@ -192,7 +195,7 @@ public:
     };
 
 // TODO Додулать удаление из вектора
-    Buffer get_message(){
+    [[deprecated]]Buffer get_message(){
         if(messages.empty()) return Buffer();
         return Buffer();
     }

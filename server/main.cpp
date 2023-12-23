@@ -45,10 +45,6 @@ void workerFunc2()
 
 int main(int argc, char *argv[])
 {
-	Buffer a;
-	std::unique_ptr<char []> value(new char [10]);
-	memset(value.get(),7,10);
-	a.set_buffer(std::move(value));
 	setlocale(LC_ALL, "Russian");
 	Serv_tcp_reader<> server(3466, 1, 1);
 	std::cout << "Start bind socket" << std::endl;
