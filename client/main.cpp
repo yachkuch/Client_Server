@@ -32,6 +32,8 @@ int main(int, char **)
 	{
 		client.send_(a, sizeof(Defaul_Heder) + 66000);
 		std::cout<<"send"<<std::endl;
+		std::chrono::milliseconds timespan(11100); // or whatever
+		std::this_thread::sleep_for(timespan);
 	}
 	// std::this_thread::sleep_for(timespan);
 	std::cout << "Finish"<<std::endl;

@@ -14,6 +14,7 @@ private:
 
 public:
 
+
     Buffer (std::unique_ptr<char[]> val,int size,std::unique_ptr<char[]> Header){
         if(val.get() == nullptr) return;
         this->buffer_size = size;

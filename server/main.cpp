@@ -12,46 +12,31 @@
 #include "Protocol_communication.h"
 #include <Protocol_pak.h>
 
-struct Default_mes
-{
-	double a;
-	int b;
-};
-
-void workerFunc()
-{
+class My_pril{
+	public:
+	My_pril(int a){
+		std::function<void(Buffer *buf)> default_mes_handler = [](Buffer *buf){
+		std::cout<<"Hello"<<std::endl;
+	};
 	Serv_tcp_reader<> server(3466, 1, 1);
-	std::cout << "Start bind socket" << std::endl;
-	// std::thread th2();
-	std::cout << std::endl;
-	auto val = server.fast_server_start();
-}
-//! @todo TODO: dsjfg
-void workerFunc2()
-{
-	client<> client(3466, 1, 1);
-	auto resault = client.connect_();
-	std::cout << "Client resault " << resault << std::endl;
-	Defaul_Heder heder;
-	heder.type_message = 2;
-	heder.size = sizeof(Defaul_Heder);
-	Default_mes mes;
-	mes.a = 1;
-	mes.b = 2;
-	char *a = new char[sizeof(Defaul_Heder) + sizeof(Default_mes)];
-	client.send_(a, sizeof(Defaul_Heder) + sizeof(Default_mes));
-	// system("Pause");
-}
-
-int main(int argc, char *argv[])
-{
-	setlocale(LC_ALL, "Russian");
-	Serv_tcp_reader<> server(3466, 1, 1);
+	server.set_default_mes_handler(default_mes_handler);
 	std::cout << "Start bind socket" << std::endl;
     int ass = 0;
 	std::cout << std::endl;
 	auto val = server.fast_server_start();
     std::cout<<val;
+	};
+
+	void b(){
+		std::cout<<"something"<<std::endl;
+	}
+};
+
+int main(int argc, char *argv[])
+{
+	setlocale(LC_ALL, "Russian");
+	My_pril a(3);
+	std::cout<<"Sheet"<<std::endl;
 	system("Pause");
 	return 0 ;
 }

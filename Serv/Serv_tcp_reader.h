@@ -151,7 +151,6 @@ protected:
     //    std::function<(char *)> default_reafer = nullptr;
     char *buff = nullptr;
     std::function<void(Buffer *buf)> default_mes_handler = nullptr;
-    std::vector<Buffer> messages;
 
     friend void Reader<Header>(SOCKET soc ,  std::function<void(Buffer *buf)> default_mes_handler);
 
@@ -184,6 +183,12 @@ public:
         }
         std::cout << "Library initialize" << std::endl;
     };
+    /// @brief Устанвливает обработцик 
+    void set_default_mes_handler( const std::function<void(Buffer *buf)> default_mes_handler){
+        if((default_mes_handler == nullptr)) return;
+        this->default_mes_handler = default_mes_handler;
+    }
+
     ~Networker_base()
     {
         printf("Close sockets %d\n", WSAGetLastError());
@@ -193,13 +198,6 @@ public:
         }
         WSACleanup();
     };
-
-// TODO Додулать удаление из вектора
-    [[deprecated]]Buffer get_message(){
-        if(messages.empty()) return Buffer();
-        return Buffer();
-    }
-
 
     void close_all_sock()
     {
