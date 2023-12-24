@@ -36,27 +36,45 @@ struct abstract_type
 struct abstract_message_type
 {
 public:
-    /// @brief Функция подчитывающая итоговый размер сообщения по передаваемой в него спецификации
-    /// @param specification
-    /// @return
-    virtual int get_size_mes(std::vector<char> specification) = 0;
-
-    /// @brief Возвращеает набор байт спецификации
+    /// @brief Возвращеает набор байт спецификации и размер сообщения
     /// @param full_spec Вектор в котором находятся поля подлежащие отправке
     /// @return Набор спецификации байт
-    static std::vector<char> set_full_specification(std::vector<bool> full_spec)
+    std::pair<std::vector<char>,int> set_full_specification(std::vector<bool> full_spec)
     {
         int size = full_spec.size();
+        std::vector<char> return_val;
         int count = 0;
+        int size_mes = 0;
+        bool spec[] = {0, 0, 0, 0, 0, 0, 0, 0};
         if (size < 8)
         {
             for (const auto &el : full_spec)
             {
+                spec[count] = el;
+                size_mes+=get_size_mes(count+1);
                 count++;
             }
-        } else {
-
+            return_val.push_back(abstract_message_type::set_spec(spec));
         }
+        else
+        {
+            int number_byte = 1;
+            for (const auto &el : full_spec)
+            {
+                spec[count] = el;
+                size_mes+=get_size_mes(count,number_byte);
+                if (count % 6 == 0)
+                {
+                    return_val.push_back(abstract_message_type::set_spec(spec));
+                    memset(spec, 0, 8);
+                    count = 0;
+                    number_byte++;
+                }
+                count++;
+            }
+            return_val.push_back(abstract_message_type::set_spec(spec));
+        }
+        return std::make_pair(return_val,size_mes) ;
     }
 
 private:
@@ -77,22 +95,56 @@ private:
         }
         return x;
     }
+
+    /// @brief Функция подчитывающая итоговый размер сообщения по передаваемой в него спецификации
+    /// @param specification
+    /// @return
+     virtual int get_size_mes(int number_bite, int nunber_bytes_spec = 1) = 0;
 };
 
 /// @brief Посылаемое сообщение первой категории
 struct type1 : public abstract_message_type
 {
-
-    int get_size_mes(std::vector<char> specification) override final
+private:
+     int get_size_mes(int number_bite, int nunber_bytes_spec = 1) override final
     {
-        int counter = 0;
+        if(number_bite>7) throw 1;
         int result_size = 0;
-        for (const auto &byte : specification)
+        switch (number_bite*nunber_bytes_spec)
         {
+        case 1: result_size = sizeof(Pol1_1);
+            break;
+        case 2: result_size = sizeof(Pol1_2);
+            break;
+        case 3: result_size = sizeof(Pol1_3);
+            break;
+        case 4: result_size = sizeof(Pol1_4);
+            break;
+        case 5: result_size = sizeof(Pol1_5);
+            break;
+        case 6: result_size = sizeof(Pol1_6);
+            break;
+        case 7: result_size = sizeof(Pol1_7);
+            break;
+        case 8: result_size = sizeof(Pol1_8);
+            break;
+        case 9: result_size = sizeof(Pol1_9);
+            break;
+        case 10: result_size = sizeof(Pol1_10);
+            break;
+        case 11: result_size = sizeof(Pol1_11);
+            break;
+        case 12: result_size = sizeof(Pol1_12);
+            break;
+        case 13: result_size = sizeof(Pol1_13);
+            break;
+        case 14: result_size = sizeof(Pol1_14);
+            break;
         }
         return result_size;
     }
 
+public:
     struct Pol1_1 : abstract_type
     {
         uint8_t A1;
@@ -191,18 +243,33 @@ struct type1 : public abstract_message_type
 /// @brief Посылаемое сообщение второй категории
 struct type2 : public abstract_message_type
 {
-
-    int get_size_mes(std::vector<char> specification) override final
+private:
+     int get_size_mes(int number_bite, int nunber_bytes_spec = 1) override final
     {
-        int counter = 0;
+        if(number_bite>7) throw 1;
         int result_size = 0;
-        for (const auto &byte : specification)
+        switch (number_bite*nunber_bytes_spec)
         {
+        case 1: result_size = sizeof(Pol2_1);
+            break;
+        case 2: result_size = sizeof(Pol2_2);
+            break;
+        case 3: result_size = sizeof(Pol2_3);
+            break;
+        case 4: result_size = sizeof(Pol2_4);
+            break;
+        case 5: result_size = sizeof(Pol2_5);
+            break;
+        case 6: result_size = sizeof(Pol2_6);
+            break;
+        case 7: result_size = sizeof(Pol2_7);
+            break;
         }
         return result_size;
     }
 
-    struct Pol1_1 : abstract_type
+public:
+    struct Pol2_1 : abstract_type
     {
         uint8_t A1;
         uint8_t A2;

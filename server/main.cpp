@@ -34,8 +34,7 @@ class My_pril{
 
 int main(int argc, char *argv[])
 {
-	bool a[] = {0,0,0,1,0,0,0};
-	abstract_message_type::set_spec(a,false);
+	std::vector<bool> a = {0,0,0,1,0,0,0};
 	setlocale(LC_ALL, "Russian");
 	My_pril pril(3);
 	std::cout<<"Sheet"<<std::endl;

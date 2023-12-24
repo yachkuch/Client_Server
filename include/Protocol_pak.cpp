@@ -27,9 +27,18 @@ void Protocol_handler::set_protcol_version(int version_version)
 void Protocol_handler::set_size_message(int size)
 {
     this->header.size = size;
+    this->message_size = size;
 }
 
 std::unique_ptr<char[]> Protocol_handler::get_send_buffer()
 {
-    return std::move(std::unique_ptr<char[]>());
+    std::unique_ptr<char[]> buff(new char[this->Head_size+this->Title_size+this->sie_spec+this->message_size]);
+    memcpy(buff.get(),&header,this->Head_size);
+    memcpy(buff.get()+this->Head_size,&title,this->Title_size);
+    //std::unique_ptr<char []> spec(new char [this->sie_spec]);
+    // TODO: Доделать упаковку спецификации в байты из вектора
+   // memcpy(buff.get()+this->Head_size+this->Title_size,,this->sie_spec);
+    // BUG:Не доделана упаковка тела сообщения 
+    //memcpy(buff.get()+this->Head_size+this->Title_size+this->sie_spec,,this->message_size);
+    return std::move(buff);
 }
