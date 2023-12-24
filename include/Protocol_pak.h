@@ -12,6 +12,8 @@ private:
     std::vector<abstract_type> data;
     /// @brief Хидер посылаемого сообщения 
     Header header;
+    /// @brief Спецификация посылаемых сообщений
+    specificatoin specif;
 
     /// Методы по работе с ссобщением 
 
@@ -33,6 +35,7 @@ public:
     /// @brief Устанавливает размер сообщения
     /// @param size размер
     void set_size_message(int size);
+
 
     /// @brief Возвращает указаетль на набор посылаемых байт
     /// @return 

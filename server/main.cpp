@@ -34,8 +34,10 @@ class My_pril{
 
 int main(int argc, char *argv[])
 {
+	bool a[] = {0,0,0,1,0,0,0};
+	abstract_message_type::set_spec(a,false);
 	setlocale(LC_ALL, "Russian");
-	My_pril a(3);
+	My_pril pril(3);
 	std::cout<<"Sheet"<<std::endl;
 	system("Pause");
 	return 0 ;
