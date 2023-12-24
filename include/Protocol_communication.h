@@ -1,5 +1,6 @@
 #pragma once
 #include<stdint.h>
+#include<vector>
 
 /// Протокол передачи сообщений переменной длинны
 
@@ -13,52 +14,69 @@ struct Header{
 struct Control_message{
     uint32_t id_abonent;
 };
-
+/// @brief Титл содержащий дополнительную техн информацию
 struct Title {
     uint32_t sender_id;
     uint32_t sender_resiver;
 };
 
 struct specificatoin{
-    char *buffer = nullptr;
+    char buffer ;
 };
 
 struct abstract_type{
 
 };
 
-struct type1 : abstract_type{
-    struct Pol1_1{
+struct abstract_message_type{
+    public:
+
+    virtual int get_size_mes(std::vector<char> specification);
+
+};
+
+
+/// @brief Посылаемое сообщение первой категории
+struct type1: public abstract_message_type{
+
+
+    int get_size_mes(std::vector<char> specification) override final{
+        
+
+    }
+
+
+    struct Pol1_1:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_2{
+    struct Pol1_2:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_3{
+    struct Pol1_3:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_4{
+    struct Pol1_4:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_5{
+    struct Pol1_5:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_6{
+    struct Pol1_6:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_7{
+    struct Pol1_7:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
@@ -67,37 +85,37 @@ struct type1 : abstract_type{
         char byte;
     };
 
-    struct Pol1_9{
+    struct Pol1_9:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_10{
+    struct Pol1_10:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_11{
+    struct Pol1_11:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_12{
+    struct Pol1_12:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_13{
+    struct Pol1_13:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_14{
+    struct Pol1_14:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol1_15{
+    struct Pol1_15:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
@@ -108,39 +126,40 @@ struct type1 : abstract_type{
 
 };
 
-struct type2 : abstract_type{
+/// @brief Посылаемое сообщение второй категории
+struct type2 {
 
-      struct Pol1_1{
+      struct Pol1_1:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol2_2{
+    struct Pol2_2:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol2_3{
+    struct Pol2_3:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol2_4{
+    struct Pol2_4:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol2_5{
+    struct Pol2_5:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol2_6{
+    struct Pol2_6:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
 
-    struct Pol2_7{
+    struct Pol2_7:abstract_type{
         uint8_t A1;
         uint8_t A2;
     };
