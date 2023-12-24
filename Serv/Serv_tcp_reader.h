@@ -81,7 +81,7 @@ void Reader(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler)
         else
         {
             std::cout <<"Прислано сообщение но остутствует обработчик данного сообщения. Размер сообщения без заголовка = "
-            <<bytes_recv2<<" Завершаю работу приложения"<< std::endl;
+            <<bytes_recv2<<" Завершаю работу приложения !!!! "<< std::endl;
             // TODO: Доделать чтобы производилось генерирование сообщения в случае отстутствия обработчика
             assert(("A must be equal to B", default_mes_handler != nullptr));
             
