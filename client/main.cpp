@@ -17,6 +17,7 @@ int main(int, char **)
 	client<> client(3466, 1, 1);
 	auto resault = client.connect_();
 	std::cout << "Client resault " << resault << std::endl;
+	//Дефолтаная посылка сообщений
 	Defaul_Heder heder;
 	heder.type_message = 3;
 	heder.size = sizeof(Defaul_Heder) + 66000;
@@ -35,7 +36,7 @@ int main(int, char **)
 		std::chrono::milliseconds timespan(11100); // or whatever
 		std::this_thread::sleep_for(timespan);
 	}
-	// std::this_thread::sleep_for(timespan);
+	std::this_thread::sleep_for(std::chrono::microseconds (100000));
 	std::cout << "Finish"<<std::endl;
 	system("Pause");
 	return 0;

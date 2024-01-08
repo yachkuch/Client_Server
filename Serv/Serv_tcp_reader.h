@@ -67,7 +67,7 @@ void Reader(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler)
         header = (Header *)buff;
         std::cout << "Message recive " << header->type_message << std::endl;
         std::unique_ptr<char[]> buff_Header(new char(Heder_size));
-    memcpy(buff_Header.get(), buff, Heder_size);
+        memcpy(buff_Header.get(), buff, Heder_size);
         std::unique_ptr<char[]> buff2(new char[header->size - Heder_size]);
         while (header->size - Heder_size - bytes_recv2 > 0)
         {
@@ -80,10 +80,10 @@ void Reader(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler)
         }
         else
         {
-            std::cout <<"Прислано сообщение но остутствует обработчик данного сообщения. Размер сообщения без заголовка = "
+            std::cout <<"I havent got message handler = "
             <<bytes_recv2<<" Завершаю работу приложения !!!! "<< std::endl;
             // TODO: Доделать чтобы производилось генерирование сообщения в случае отстутствия обработчика
-            assert(("A must be equal to B", default_mes_handler != nullptr));
+            //assert(("A must be equal to B", default_mes_handler != nullptr));
             
         }
     }
@@ -202,6 +202,11 @@ public:
         }
         std::cout << "Library initialize" << std::endl;
     };
+
+    void set_default_mes_handler(std::function<void(Buffer *buf)> val){
+        default_reafer = val;
+
+    }
     Networker_base(const uint16_t port /*,uint8_t socket_type*/, uint8_t protocol_type) : port(port)
     {
         has_perements();
@@ -275,7 +280,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(Reader<Header>, client_socket);
+            std::thread a(Reader<Header>, client_socket,default_reafer);
             a.detach();
             std::cout << "Create accept " << inet_ntoa(client_addr.sin_addr) << std::endl;
         }
@@ -410,8 +415,6 @@ public:
         SOCKET client_socket;
         sockaddr_in client_addr;
         int client_addr_size = sizeof(client_addr);
-        // std::thread a1 (&Networker_base::listen_socket,this,client_socket);
-        // a1.detach();
         while ((client_socket = accept(*last_create_socket, (sockaddr *)&client_addr, &client_addr_size)))
         {
             HOSTENT *host;
