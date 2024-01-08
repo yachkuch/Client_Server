@@ -34,8 +34,9 @@ class My_pril{
 
 int main(int argc, char *argv[])
 {
+	std::vector<bool> a = {0,0,0,1,0,0,0};
 	setlocale(LC_ALL, "Russian");
-	My_pril a(3);
+	My_pril pril(3);
 	std::cout<<"Sheet"<<std::endl;
 	system("Pause");
 	return 0 ;
