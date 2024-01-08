@@ -68,6 +68,7 @@ void Reader(SOCKET soc ,  std::function<void(Buffer buf)> default_mes_handler)
             bytes_recv2 = recv(soc, buff2.get() + bytes_recv2, header->size - Heder_size - bytes_recv2 , MSG_WAITALL);
         }
         if(default_mes_handler != nullptr){
+            /// TODO: Добавить установку в буффер байт о типе ссобщения
             default_mes_handler(std::move(Buffer(std::move(buff2),bytes_recv2)));
         } else {
             std::cout<<"Прислано сообщение но остутствует обработчик данного сообщения"<<std::endl;

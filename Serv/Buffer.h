@@ -21,7 +21,7 @@ public:
             throw 1;
     }
 
-    Buffer (std::unique_ptr<char[]> val,int size,int type,int version = 0){
+    Buffer (std::unique_ptr<char[]> val,int size,int type = 0,int version = 0){
         if(val.get() == nullptr) return;
         this->buffer_size = size;
         this->buffer = std::move(val);
@@ -30,6 +30,7 @@ public:
     }
 
     Buffer (Buffer &val) = delete;
+    Buffer (Buffer && val) = default;
 
     Buffer() = default;
 
