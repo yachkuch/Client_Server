@@ -17,7 +17,7 @@ private:
 
     int Head_size = sizeof(Header);
     int Title_size = sizeof(Title);
-    int sie_spec = specif.buffer.size();
+    int sie_spec = 0;
     int message_size = 0;
 
     /// Методы по работе с ссобщением 
@@ -45,6 +45,7 @@ public:
     /// @brief Возвращает указаетль на набор посылаемых байт
     /// @return 
     std::unique_ptr<char[]> get_send_buffer();
+    int get_size_spec();
 };
 
 

@@ -1,5 +1,5 @@
 /// @author Якуш Н.А.
-/// @version 1.1.0.
+/// @version 1.0.0.
 /// @date 17.11.2023
 /// @details Классы с клиент серверными универсальными классами клиента и сервера
 #pragma once
@@ -80,10 +80,10 @@ void Reader(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler)
         }
         else
         {
-            std::cout <<"Прислано сообщение но остутствует обработчик данного сообщения. Размер сообщения без заголовка = "
+            std::cout <<"I havent got message handler = "
             <<bytes_recv2<<" Завершаю работу приложения !!!! "<< std::endl;
             // TODO: Доделать чтобы производилось генерирование сообщения в случае отстутствия обработчика
-            assert(("A must be equal to B", default_mes_handler != nullptr));
+            //assert(("A must be equal to B", default_mes_handler != nullptr));
             
         }
     }
@@ -117,6 +117,7 @@ enum class socet_type : uint8_t
     potock_soclet = SOCK_STREAM,
     datagramm_socket = SOCK_DGRAM,
 };
+
 /// @brief Структуры для проверки наличия параметра size у header
 /// @tparam T
 /// @tparam
@@ -159,17 +160,35 @@ protected:
     /// @brief Хранит в себе последний созданный сокет, чтобы серверу было удобно делать метод bind
     SOCKET *last_create_socket = nullptr;
     /// @todo разобраться с ридером
-    //    std::function<(char *)> default_reafer = nullptr;
+    std::function<void(Buffer *buf)> default_reafer = nullptr;
     char *buff = nullptr;
-    std::function<void(Buffer *buf)> default_mes_handler = nullptr;
-
-    friend void Reader<Header>(SOCKET soc, std::function<void(Buffer *buf)> default_mes_handler);
 
     /// @brief Проверяет наличие размера у heder
     void has_perements()
     {
         Has_s<Header>;
     };
+
+    void bytes_reader(SOCKET soc)
+    {
+        /// TODO Дописать вычитываетль байт
+        
+        Header header;
+        std::unique_ptr<*char [sizeof(Header)]> header_bytes(new [sizeof(Header)] );
+        char *buff = new char[sizeof(Header)];
+        memset(buff, 0, sizeof(Header));
+        int bytes_recv = recv(soc, buff, sizeof(Header), MSG_PEEK);
+        while (bytes_recv<sizeof(Header))
+        {
+            bytes_recv = ecv(soc, buff, sizeof(Header), MSG_PEEK);
+        }
+        memcpy(&header, buff, sizeof(Defaul_Heder));
+        std::cout << "Message recive " << header.type_message << std::endl;
+        // if(header.size>sizeof){
+
+        // }
+        
+    }
 
 public:
     Networker_base()
@@ -183,6 +202,11 @@ public:
         }
         std::cout << "Library initialize" << std::endl;
     };
+
+    void set_default_mes_handler(std::function<void(Buffer *buf)> val){
+        default_reafer = val;
+
+    }
     Networker_base(const uint16_t port /*,uint8_t socket_type*/, uint8_t protocol_type) : port(port)
     {
         has_perements();
@@ -194,14 +218,7 @@ public:
         }
         std::cout << "Library initialize" << std::endl;
     };
-    /// @brief Устанвливает обработцик
-    void set_default_mes_handler(const std::function<void(Buffer *buf)> default_mes_handler)
-    {
-        if ((default_mes_handler == nullptr))
-            return;
-        this->default_mes_handler = default_mes_handler;
-    }
-
+    // @todo очистку и закрытие всех сокетов
     ~Networker_base()
     {
         printf("Close sockets %d\n", WSAGetLastError());
@@ -263,7 +280,7 @@ public:
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(Reader<Header>, client_socket, default_mes_handler);
+            std::thread a(Reader<Header>, client_socket,default_reafer);
             a.detach();
             std::cout << "Create accept " << inet_ntoa(client_addr.sin_addr) << std::endl;
         }
@@ -296,16 +313,6 @@ public:
     /// @param size  размер посылки
     void send_(std::unique_ptr<char> buffer, int size = 0, SOCKET *soket = nullptr)
     {
-        if (socket == nullptr)
-        {
-            if (!is_connected())
-                return;
-        }
-        else
-        {
-            if (!is_connected(socket))
-                return;
-        }
         if ((size != 0))
         {
             SOCKET *soc = nullptr;
@@ -338,16 +345,6 @@ public:
 
     void send_(const char *buffer, int size = 0, SOCKET *soket = nullptr)
     {
-        if (socket == nullptr)
-        {
-            if (!is_connected())
-                return;
-        }
-        else
-        {
-            if (!is_connected(soket))
-                return;
-        }
         if ((size != 0))
         {
             SOCKET *soc = nullptr;
@@ -377,44 +374,6 @@ public:
 
             // std::cout << "Автор сраный лентяй и не доделал чсасть где не передается параметр size" << std::endl;
         }
-    }
-
-    const bool is_connected(SOCKET *socket = nullptr)
-    {
-        sockaddr_in dest_addr;
-        dest_addr.sin_family = AF_INET;
-        dest_addr.sin_port = htons(port);
-        HOSTENT *hst;
-
-        SOCKET *connect_soc = nullptr;
-
-        if (inet_addr(local_host) != INADDR_NONE)
-        {
-            dest_addr.sin_addr.s_addr = inet_addr(local_host);
-        }
-        else
-        {
-            if (hst = gethostbyname(local_host))
-            {
-                ((unsigned long *)&dest_addr.sin_addr)[0] = ((unsigned long **)hst->h_addr_list)[0][0];
-            }
-            else
-            {
-                close_all_sockets();
-                return false;
-            }
-        }
-        if (socket == nullptr)
-            connect_soc = last_create_socket;
-        if (last_create_socket == nullptr)
-            return false;
-        if (connect(*socket, (sockaddr *)&dest_addr, sizeof(dest_addr)))
-        {
-            std::cout << "Connect error" << std::endl;
-            return false;
-        }
-        std::cout << "Connect_secsessful" << std::endl;
-        return true;
     }
 };
 
@@ -456,14 +415,12 @@ public:
         SOCKET client_socket;
         sockaddr_in client_addr;
         int client_addr_size = sizeof(client_addr);
-        // std::thread a1 (&Networker_base::listen_socket,this,client_socket);
-        // a1.detach();
         while ((client_socket = accept(*last_create_socket, (sockaddr *)&client_addr, &client_addr_size)))
         {
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(Reader<Header>, client_socket, default_mes_handler);
+            std::thread a(Reader<Header>, client_socket, default_reafer);
             a.detach();
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
@@ -497,7 +454,7 @@ public:
     };
     ~client(){};
 
-    [[deprecated]] bool connect_from_server()
+    [[deprecated]]bool connect_()
     {
         sockaddr_in dest_addr;
         dest_addr.sin_family = AF_INET;

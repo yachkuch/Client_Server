@@ -16,10 +16,13 @@ class My_pril{
 	public:
 	My_pril(int a){
 		std::function<void(Buffer *buf)> default_mes_handler = [](Buffer *buf){
-		std::cout<<"Hello"<<std::endl;
+		std::cout<<"Mesasage insert"<<std::endl;
+		Defaul_Heder header;
+		//memcpy(&header,buf->get_header().get(),sizeof(Defaul_Heder));
+		
 	};
 	Serv_tcp_reader<> server(3466, 1, 1);
-	//server.set_default_mes_handler(default_mes_handler);
+	server.set_default_mes_handler(default_mes_handler);
 	std::cout << "Start bind socket" << std::endl;
     int ass = 0;
 	std::cout << std::endl;
