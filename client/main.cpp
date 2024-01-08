@@ -15,7 +15,7 @@ int main(int, char **)
 	std::cout << "Hello, from CLient!\n";
 
 	client<> client(3466, 1, 1);
-	auto resault = client.connect_from_server();
+	auto resault = client.connect_();
 	std::cout << "Client resault " << resault << std::endl;
 	Defaul_Heder heder;
 	heder.type_message = 3;

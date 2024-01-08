@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <vector>
+#include <cstring>
 
 /// Протокол передачи сообщений переменной длинны
 
