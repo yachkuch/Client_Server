@@ -166,7 +166,7 @@ protected:
     /// @brief Проверяет наличие размера у heder
     void has_perements()
     {
-        Has_s<Header>;
+        Has_s<Header> a;
     };
 
     void bytes_reader(SOCKET soc)
@@ -174,13 +174,13 @@ protected:
         /// TODO Дописать вычитываетль байт
         
         Header header;
-        std::unique_ptr<*char [sizeof(Header)]> header_bytes(new [sizeof(Header)] );
+        std::unique_ptr<char [sizeof(Header)]> header_bytes(new char [(sizeof(Header))] );
         char *buff = new char[sizeof(Header)];
         memset(buff, 0, sizeof(Header));
         int bytes_recv = recv(soc, buff, sizeof(Header), MSG_PEEK);
         while (bytes_recv<sizeof(Header))
         {
-            bytes_recv = ecv(soc, buff, sizeof(Header), MSG_PEEK);
+            bytes_recv = recv(soc, buff, sizeof(Header), MSG_PEEK);
         }
         memcpy(&header, buff, sizeof(Defaul_Heder));
         std::cout << "Message recive " << header.type_message << std::endl;
@@ -393,20 +393,20 @@ public:
 
     bool bind_socket()
     {
-        if (last_create_socket == nullptr)
+        if (this->last_create_socket == nullptr)
         {
             std::cout << "Soket dont create" << std::endl;
         }
         sockaddr_in adress;
         adress.sin_family = AF_INET;
-        adress.sin_port = htons(port);
+        adress.sin_port = htons(this->port);
         adress.sin_addr.S_un.S_addr = 0;
-        if (bind(*last_create_socket, (sockaddr *)&adress, sizeof(adress)))
+        if (bind(*this->last_create_socket, (sockaddr *)&adress, sizeof(adress)))
         {
             std::cout << "Soket didnt bind (Server)" << std::endl;
             return false;
         }
-        if (listen(*last_create_socket, 0x100))
+        if (listen(*this->last_create_socket, 0x100))
         {
             std::cout << "Erroe listen socket!" << std::endl;
             return false;
@@ -415,12 +415,12 @@ public:
         SOCKET client_socket;
         sockaddr_in client_addr;
         int client_addr_size = sizeof(client_addr);
-        while ((client_socket = accept(*last_create_socket, (sockaddr *)&client_addr, &client_addr_size)))
+        while ((client_socket = accept(*this->last_create_socket, (sockaddr *)&client_addr, &client_addr_size)))
         {
             HOSTENT *host;
             host = gethostbyaddr((char *)&client_addr.sin_addr.s_addr, 4, AF_INET);
             DWORD thID;
-            std::thread a(Reader<Header>, client_socket, default_reafer);
+            std::thread a(Reader<Header>, client_socket, this->default_reafer);
             a.detach();
             std::cout << "Create accept " << std::endl;
             /// @todo нет функции передаваемой в поток
@@ -448,7 +448,7 @@ private:
     /* data */
 public:
     client(){};
-    client(const uint16_t port, uint8_t sockete_type, uint8_t protocol_type) : Networker_base(port, protocol_type)
+    client(const uint16_t port_, uint8_t sockete_type, uint8_t protocol_type) //: Networker_base(port_, protocol_type)
     {
         std::cout << "Client initialize sucsessful" << std::endl;
     };
@@ -458,7 +458,7 @@ public:
     {
         sockaddr_in dest_addr;
         dest_addr.sin_family = AF_INET;
-        dest_addr.sin_port = htons(port);
+        dest_addr.sin_port = htons(this->port);
         HOSTENT *hst;
 
         if (inet_addr(local_host) != INADDR_NONE)
@@ -473,13 +473,13 @@ public:
             }
             else
             {
-                close_all_sockets();
+                this->close_all_sockets();
                 return false;
             }
         }
-        if (last_create_socket == nullptr)
-            add_socket();
-        if (connect(*last_create_socket, (sockaddr *)&dest_addr, sizeof(dest_addr)))
+        if (this->last_create_socket == nullptr)
+            this->add_socket();
+        if (connect(*this->last_create_socket, (sockaddr *)&dest_addr, sizeof(dest_addr)))
         {
             std::cout << "Connect error" << std::endl;
             return false;
